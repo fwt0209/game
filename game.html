@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Training 99</title>
+<script>
+let ga={
+    ctx:null, lib:{},
+    res:{
+        total:3, loaded:0,
+        imgs:{
+            plane:"./content/plane.png",
+            explosion:"./content/explosion.png",
+            smoke:"./content/smoke.png"
+        }
+    },
+    game:{
+        id:0,//排程的ID
+        circle:0,//回合數
+        drawables:null, plane:null, bulletSystem:null,
+        key:{
+            left:false, top:false, right:false, bottom:false, space:false
+        }
+    }
+};
+
+//飛機
+ga.lib.Plane=class{
+    constructor(){
+        this.x=ga.ctx.canvas.width/2;
+        this.y=ga.ctx.canvas.height/2;
+        this.size=20;
+    }
+    update(){
+        let speed=2;
+        if(ga.game.key.space){
+            speed=speed*2;
+        }
+        if(ga.game.key.left){            
+            this.x-=speed;
+            //if(this.x <10){this.x = 10}
+        }
+        if(ga.game.key.right){
+            this.x+=speed;
+            //if(this.x > ga.ctx.canvas.width -10){this.x = ga.ctx.canvas.width -10}
+        }
+        if(ga.game.key.top){
+            this.y-=speed;
+            if(this.y <10){this.y = 10}
+        }
+        if(ga.game.key.bottom){
+            this.y+=speed;
+            if(this.y > ga.ctx.canvas.height -10){this.y = ga.ctx.canvas.height -10}
+        }
+        if(this.x<this.size/2){
+            this.x=this.size/2;
+        }
+        if(this.x>ga.ctx.canvas.width - this.size/2){
+            this.x=ga.ctx.canvas.width - this.size/2;
+        }
+        return false;
+    }
+    draw(){
+        ga.ctx.save();
+        let plane=ga.res.imgs.plane;
+        if(ga.game.key.space){ //啟動後燃機時變更飛機畫面
+            plane=ga.res.imgs.smoke;
+        }
+        ga.ctx.drawImage(plane,
+            this.x-this.size/2, this.y-this.size/2,
+            this.size, this.size
+        );
+        ga.ctx.restore();
+    }
+};
+
+//子彈
+ga.lib.Bullet=class{
+    constructor(){
+        let seed=Math.random();
+        if(seed<0.25){ //to right
+            this.x=0;
+            this.y=Math.random()*ga.ctx.canvas.height; //在y軸上散佈
+            this.vx=Math.random()*2+0.5; //0.5~2.5
+            this.vy=Math.random()*1-0.5; //-0.5~0.5
+        }
+        else if(seed<0.5){ //to lfet
+            this.x=ga.ctx.canvas.width;
+            this.y=Math.random()*ga.ctx.canvas.height; //在y軸上散佈
+            this.vx=Math.random()*2-2.5; //-0.5~-2.5
+            this.vy=Math.random()*1-0.5; //-0.5~0.5
+        }
+        else if(seed<0.75){ //to bottom
+            this.x=Math.random()*ga.ctx.canvas.width;
+            this.y=0; //在y軸上散佈
+            this.vx=Math.random()*1-0.5; //-0.5~0.5
+            this.vy=Math.random()**2+0.5; //0.5~2.5
+        }
+        else{ //to top
+            this.x=Math.random()*ga.ctx.canvas.width;//在x軸上散佈
+            this.y=ga.ctx.canvas.height; 
+            this.vx=Math.random()*1-0.5; //-0.5~-0.5
+            this.vy=Math.random()*2-2.5; //-0.5~-2.5
+        }
+        this.size=2;
+    }
+    update(){
+        this.x+=this.vx;
+        this.y+=this.vy;
+        return this.x<0 ||
+                this.x>ga.ctx.canvas.width ||
+                this.y<0 ||
+                this.y>ga.ctx.canvas.height;
+    }
+    draw(){
+        ga.ctx.save();
+        ga.ctx.fillStyle="orange";
+        ga.ctx.beginPath();
+        ga.ctx.arc(this.x, this.y, this.size, 0, 2*Math.PI); // (x軸, y軸, 半徑, 起始角度(徑度), 結束角度(徑度) )
+        ga.ctx.fill();
+        ga.ctx.restore();
+    }
+}
+ga.lib.BulletSystem=class{
+    constructor(){
+        this.bullets=[];
+        this.freq=7; //每4個回合增加1顆子彈
+    }
+    update(){
+        // 每 freq 回合加入一顆子彈
+        if(ga.game.circle % this.freq==0){
+             this.bullets.push(new ga.lib.Bullet());            
+        }
+        //更新每顆子彈的資料
+        for(let i=1; i<this.bullets.length; i++){
+            let isDead=this.bullets[i].update();
+            if(isDead){
+                this.bullets.splice(i,1);
+                i--;
+            }
+        }
+    }
+    draw(){
+        for(let i=1; i<this.bullets.length; i++){          
+            this.bullets[i].draw();
+        }
+    }
+}
+
+
+function init(){ // 網頁載入完成後，初始化程式
+    ga.ctx=document.querySelector("#cvs").getContext("2d");
+    loadResources();
+}
+function loadResources(){
+    loadImages();
+}
+function loadImages(){
+    // 逐一取出物件中的成員名稱
+    // for(let 變數名稱 in 物件){}
+    for(let key in ga.res.imgs){
+        loadImage(key, ga.res.imgs[key]);
+    }
+}
+    function loadImage(key, src){
+        let img=new Image();
+        img.src=src;
+        img.addEventListener("load", function(){
+            // 將載入成功的圖片物件，覆蓋進我們自己的結構中
+            ga.res.imgs[key]=img;
+            // 報告資源載入成功一次
+            resourceLoaded();
+        });
+    }
+    function resourceLoaded(){
+        ga.res.loaded++;
+        let percentage=100*ga.res.loaded/ga.res.total;
+        document.querySelector("#loading").innerHTML="Loading .. "+percentage+"%";
+        if(ga.res.loaded==ga.res.total){
+            initMenu();
+        }
+    }
+function initMenu(){
+    // 處理 HTML DOM
+    document.querySelector("#loading").style.display="none";
+    document.querySelector("#menu").style.display="block";
+    document.querySelector("#main").style.display="none";
+}
+function initGame(){
+    // 處理 HTML DOM
+    document.querySelector("#menu").style.display="none";
+    document.querySelector("#main").style.display="block";
+    // 加入鍵盤控制
+    document.addEventListener("keydown", keydown);
+    document.addEventListener("keyup", keyup);
+    // 初始化遊戲資料
+    ga.ctx.canvas.removeEventListener("click", initGame);
+    ga.game.circle=0;
+    ga.game.plane=new ga.lib.Plane();
+    ga.game.bulletSystem=new ga.lib.BulletSystem();
+    ga.game.drawables=[ga.game.plane, ga.game.bulletSystem];
+    ga.game.id=window.setInterval(refreshGame, 10); // 啟動遊戲
+}
+    function keyup(e){
+        let code=e.keyCode;
+        if(code==37){ // left
+            ga.game.key.left=false;
+        }else if(code==38){ // top
+            ga.game.key.top=false;
+        }else if(code==39){ // right
+            ga.game.key.right=false;
+        }else if(code==40){ // bottom
+            ga.game.key.bottom=false;
+        }else if(code==32){ // space
+            ga.game.key.space=false;
+        }
+    }
+    function keydown(e){
+        let code=e.keyCode;
+        if(code==37){ // left
+            ga.game.key.left=true;
+        }else if(code==38){ // top
+            ga.game.key.top=true;
+        }else if(code==39){ // right
+            ga.game.key.right=true;
+        }else if(code==40){ // bottom
+            ga.game.key.bottom=true;
+        }else if(code==32){ // space
+            ga.game.key.space=true;
+        }
+    }
+function refreshGame(){
+    let drawables=ga.game.drawables;
+    // 更新資料
+    for(let i=0;i<drawables.length;i++){
+        let isDead=drawables[i].update();
+        if(isDead){
+            drawables.splice(i, 1);
+            i--;
+        }    
+    }
+    // 清空畫面
+    ga.ctx.fillRect(0, 0, ga.ctx.canvas.width, ga.ctx.canvas.height);
+    // 重新繪製
+    for(let i=0;i<drawables.length;i++){
+        drawables[i].draw();  
+    }
+    //偵測遊戲是否結束
+    if(checkGameOver()){
+        gameOver();
+    }
+    //更新回合數
+    ga.game.circle++;
+}
+function checkGameOver(){
+    let plane=ga.game.plane;
+    let bullets=ga.game.bulletSystem.bullets;    
+    let threshold=(plane.size/2)+bullets[0].size;
+    let distance;
+    for(let i=0; i<bullets.length; i++){
+        distance=Math.sqrt(
+            Math.pow(plane.x-bullets[i].x, 2)+
+            Math.pow(plane.y-bullets[i].y, 2)
+        );        
+        if(distance<=threshold){
+            return true;
+        }
+    }
+    return false;
+}
+
+function gameOver(){
+    // 加入爆炸特效
+    let plane=ga.game.plane;
+    ga.ctx.drawImage(ga.res.imgs.explosion,
+    plane.x-20, plane.y-20, 40, 40);
+    //播放爆炸聲音
+    let audio=document.querySelector("#explosion-sound");
+    audio.currentTime=0;
+    audio.play();
+    //結束遊戲
+    window.clearInterval(ga.game.id);
+    //點擊重來
+    ga.ctx.canvas.addEventListener("click", initGame);
+}
+window.addEventListener("load", init);
+</script>
+</head>
+<body>
+    <h3>Training 99</h3>
+    <audio id="explosion-sound" src="./content/explosion.mp3"></audio>
+    <div id="loading">Loading</div>
+    <div id="menu" style="display:none">
+        <button onclick="initGame();">Start</button>
+    </div>
+    <div id="main" style="display:none">
+        <canvas id="cvs" width="640" height="480"></canvas>
+    </div>
+</body>
+</html>
