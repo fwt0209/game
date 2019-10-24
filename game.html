@@ -65,9 +65,9 @@ ga.lib.Plane=class{
     draw(){
         ga.ctx.save();
         let plane=ga.res.imgs.plane;
-        if(ga.game.key.space){ //啟動後燃機時變更飛機畫面
+        /*if(ga.game.key.space){ //啟動後燃機時變更飛機畫面
             plane=ga.res.imgs.smoke;
-        }
+        }*/
         ga.ctx.drawImage(plane,
             this.x-this.size/2, this.y-this.size/2,
             this.size, this.size
