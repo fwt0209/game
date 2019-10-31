@@ -19,9 +19,6 @@ let ga={
     game:{
         id:0,//排程的ID
         circle:0,//回合數
-        touches:{ //觸控點數量
-            up:[], down:[], right:[], left:[]
-        },
         drawables:null, plane:null, bulletSystem:null,
         key:{
             left:false, top:false, right:false, bottom:false, space:false
@@ -201,10 +198,6 @@ function initGame(){
     // 初始化遊戲資料
     ga.ctx.canvas.removeEventListener("click", initGame);
     ga.game.circle=0;
-    ga.game.touches.up=[];
-    ga.game.touches.down=[];
-    ga.game.touches.left=[];
-    ga.game.touches.right=[];
     ga.game.plane=new ga.lib.Plane();
     ga.game.bulletSystem=new ga.lib.BulletSystem();
     ga.game.drawables=[ga.game.plane, ga.game.bulletSystem];
@@ -295,14 +288,12 @@ function gameOver(){
     ga.ctx.canvas.addEventListener("click", initGame);
 }
 window.addEventListener("load", init);
-document.addEventListener('touchmove', function (event) {
-                event.preventDefault();
-            }, {passive: false});
+
 </script>
 
 
 </head>
-<body>
+<body style="width: 370px; height: 650px;">
     <h3>Training 99</h3>
     <audio id="explosion-sound" src="./content/explosion.mp3"></audio>
     <div id="loading">Loading</div>
