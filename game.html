@@ -295,6 +295,9 @@ function gameOver(){
     ga.ctx.canvas.addEventListener("click", initGame);
 }
 window.addEventListener("load", init);
+document.addEventListener('touchmove', function (event) {
+                event.preventDefault();
+            }, {passive: false});
 </script>
 
 
