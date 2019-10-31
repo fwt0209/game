@@ -19,6 +19,9 @@ let ga={
     game:{
         id:0,//排程的ID
         circle:0,//回合數
+        touches:{ //觸控點數量
+            up:[], down:[], right:[], left:[]
+        },
         drawables:null, plane:null, bulletSystem:null,
         key:{
             left:false, top:false, right:false, bottom:false, space:false
@@ -65,9 +68,9 @@ ga.lib.Plane=class{
     draw(){
         ga.ctx.save();
         let plane=ga.res.imgs.plane;
-        /*if(ga.game.key.space){ //啟動後燃機時變更飛機畫面
+        if(ga.game.key.space){ //啟動後燃機時變更飛機畫面
             plane=ga.res.imgs.smoke;
-        }*/
+        }
         ga.ctx.drawImage(plane,
             this.x-this.size/2, this.y-this.size/2,
             this.size, this.size
@@ -93,8 +96,8 @@ ga.lib.Bullet=class{
             this.vy=Math.random()*1-0.5; //-0.5~0.5
         }
         else if(seed<0.75){ //to bottom
-            this.x=Math.random()*ga.ctx.canvas.width;
-            this.y=0; //在y軸上散佈
+            this.x=Math.random()*ga.ctx.canvas.width;//在x軸上散佈
+            this.y=0; 
             this.vx=Math.random()*1-0.5; //-0.5~0.5
             this.vy=Math.random()**2+0.5; //0.5~2.5
         }
@@ -189,12 +192,41 @@ function initMenu(){
     document.querySelector("#main").style.display="none";
 }
 function initGame(){
+    let up, down, right, left;
+    up=document.querySelector("#up");
+    down=document.querySelector("#down");
+    right=document.querySelector("#right");
+    left=document.querySelector("#left");
     // 處理 HTML DOM
     document.querySelector("#menu").style.display="none";
     document.querySelector("#main").style.display="block";
     // 加入鍵盤控制
     document.addEventListener("keydown", keydown);
     document.addEventListener("keyup", keyup);
+    up.addEventListener("touchstart",function(e){
+        ga.game.touches.up = e.touches;
+    });
+    up.addEventListener("touchend",function(e){
+        ga.game.touches.up = e.touches;
+    });
+    down.addEventListener("touchstart",function(e){
+        ga.game.touches.down = e.touches;
+    });
+    down.addEventListener("touchend",function(e){
+        ga.game.touches.down = e.touches;
+    });
+    right.addEventListener("touchstart",function(e){
+        ga.game.touches.right = e.touches;
+    });
+    right.addEventListener("touchend",function(e){
+        ga.game.touches.right = e.touches;
+    });
+    left.addEventListener("touchstart",function(e){
+        ga.game.touches.left = e.touches;
+    });
+    left.addEventListener("touchend",function(e){
+        ga.game.touches.left = e.touches;
+    });
     // 初始化遊戲資料
     ga.ctx.canvas.removeEventListener("click", initGame);
     ga.game.circle=0;
@@ -253,6 +285,35 @@ function refreshGame(){
     }
     //更新回合數
     ga.game.circle++;
+    touchCheck();
+}
+function touchCheck(){
+    let touches=ga.game.touches;
+    let key=ga.game.key;
+    if(touches.up[0]){
+        key.top=true;
+    }
+    else{
+        key.top=false;
+    }
+    if(touches.down[0]){
+        key.bottom=true;
+    }
+    else{
+        key.bottom=false;
+    }
+    if(touches.right[0]){
+        key.right=true;
+    }
+    else{
+        key.right=false;
+    }
+    if(touches.left[0]){
+        key.left=true;
+    }
+    else{
+        key.left=false;
+    }
 }
 function checkGameOver(){
     let plane=ga.game.plane;
@@ -287,6 +348,35 @@ function gameOver(){
 }
 window.addEventListener("load", init);
 </script>
+
+<style>
+    .upBox{
+        width: 100px;
+        height: 50px;
+        border: 1px solid black;
+        background-color:lightgreen;
+        margin: 0px 50px;
+    }
+    .rightBox{
+        width: 100px;
+        height: 50px;
+        border: 1px solid black;
+        background-color: blue;
+    }
+    .leftBox{
+        width: 100px;
+        height: 50px;
+        border: 1px solid black;
+        background-color:chocolate;
+    }
+    .downBox{
+        width: 100px;
+        height: 50px;
+        border: 1px solid black;
+        background-color:fuchsia;
+        margin: 0px 50px;
+    }
+</style>
 </head>
 <body>
     <h3>Training 99</h3>
@@ -296,7 +386,15 @@ window.addEventListener("load", init);
         <button onclick="initGame();">Start</button>
     </div>
     <div id="main" style="display:none">
-        <canvas id="cvs" width="640" height="480"></canvas>
+        <canvas id="cvs" width="360" height="430"></canvas>
+        <div>
+            <div id="up" class="upBox"></div>
+            <div style="display: flex;">
+                <div id="left" class="leftBox"></div> 
+                <div id="right" class="rightBox"></div>                
+            </div>
+            <div id="down" class="downBox"></div> 
+        </div>
     </div>
 </body>
 </html>
