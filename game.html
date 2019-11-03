@@ -19,7 +19,7 @@ let ga={
     game:{
         id:0,//排程的ID
         circle:0,//回合數
-        drawables:null, plane:null, bulletSystem:null,
+        drawables:null, plane:null, bulletSystem:null, 
         key:{
             left:false, top:false, right:false, bottom:false, space:false
         }
@@ -197,6 +197,8 @@ function initGame(){
     document.addEventListener("keyup", keyup);    
     // 初始化遊戲資料
     ga.ctx.canvas.removeEventListener("click", initGame);
+    ga.ctx.canvas.addEventListener("touchstart", touchStart);
+    ga.ctx.canvas.addEventListener("touchend", touchEnd);
     ga.game.circle=0;
     ga.game.plane=new ga.lib.Plane();
     ga.game.bulletSystem=new ga.lib.BulletSystem();
@@ -231,6 +233,30 @@ function initGame(){
             ga.game.key.space=true;
         }
     }
+    function touchStart(e){
+        let x,y;
+        x=e.touches[0].pageX;
+        y=e.touches[0].pageY;
+        
+        if(x<ga.game.plane.x){
+            ga.game.key.left=true;
+        }
+        if(x>ga.game.plane.x){
+            ga.game.key.right=true;
+        }
+        if(y<ga.game.plane.y){
+            ga.game.key.top=true;
+        }
+        if(y>ga.game.plane.y){
+            ga.game.key.bottom=true;
+        }   
+    }
+    function touchEnd(){
+        ga.game.key.right=false;
+        ga.game.key.left=false;
+        ga.game.key.top=false;
+        ga.game.key.bottom=false;
+    }
 function refreshGame(){
     let drawables=ga.game.drawables;
     // 更新資料
@@ -253,8 +279,9 @@ function refreshGame(){
     }
     //更新回合數
     ga.game.circle++;
-
+    
 }
+
 
 function checkGameOver(){
     let plane=ga.game.plane;
@@ -286,14 +313,18 @@ function gameOver(){
     window.clearInterval(ga.game.id);
     //點擊重來
     ga.ctx.canvas.addEventListener("click", initGame);
+    ga.ctx.canvas.removeEventListener("touchstart", touchStart);
+    ga.ctx.canvas.removeEventListener("touchend", touchEnd);
 }
 window.addEventListener("load", init);
-
+document.addEventListener('touchmove', function (event) {
+                event.preventDefault();
+            }, {passive: false});
 </script>
 
 
 </head>
-<body style="width: 370px; height: 500px;">
+<body>
     <h3>Training 99</h3>
     <audio id="explosion-sound" src="./content/explosion.mp3"></audio>
     <div id="loading">Loading</div>
