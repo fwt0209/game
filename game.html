@@ -315,6 +315,7 @@ function gameOver(){
     ga.ctx.canvas.addEventListener("click", initGame);
     ga.ctx.canvas.removeEventListener("touchstart", touchStart);
     ga.ctx.canvas.removeEventListener("touchend", touchEnd);
+    touchEnd();
 }
 window.addEventListener("load", init);
 document.addEventListener('touchmove', function (event) {
