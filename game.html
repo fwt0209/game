@@ -13,7 +13,11 @@ let ga={
         imgs:{
             plane:"./content/plane.png",
             explosion:"./content/explosion.png",
-            smoke:"./content/smoke.png"
+            smoke:"./content/smoke.png",
+            up:"./content/up.png",
+            down:"./content/down.png",
+            right:"./content/right.png",
+            left:"./content/left.png",
         }
     },
     game:{
@@ -21,7 +25,7 @@ let ga={
         circle:0,//回合數
         drawables:null, plane:null, bulletSystem:null, 
         key:{
-            left:false, top:false, right:false, bottom:false, space:false
+            left:false, up:false, right:false, down:false, space:false
         }
     }
 };
@@ -46,11 +50,11 @@ ga.lib.Plane=class{
             this.x+=speed;
             //if(this.x > ga.ctx.canvas.width -10){this.x = ga.ctx.canvas.width -10}
         }
-        if(ga.game.key.top){
+        if(ga.game.key.up){
             this.y-=speed;
             if(this.y <10){this.y = 10}
         }
-        if(ga.game.key.bottom){
+        if(ga.game.key.down){
             this.y+=speed;
             if(this.y > ga.ctx.canvas.height -10){this.y = ga.ctx.canvas.height -10}
         }
@@ -161,7 +165,7 @@ function loadImages(){
     // 逐一取出物件中的成員名稱
     // for(let 變數名稱 in 物件){}
     for(let key in ga.res.imgs){
-        loadImage(key, ga.res.imgs[key]);
+        loadImage(key, ga.res.imgs[key]);        
     }
 }
     function loadImage(key, src){
@@ -180,13 +184,17 @@ function loadImages(){
         document.querySelector("#loading").innerHTML="Loading .. "+percentage+"%";
         if(ga.res.loaded==ga.res.total){
             initMenu();
-        }
+        }        
     }
 function initMenu(){
     // 處理 HTML DOM
     document.querySelector("#loading").style.display="none";
     document.querySelector("#menu").style.display="block";
     document.querySelector("#main").style.display="none";
+    document.querySelector("#up_arrow").src=ga.res.imgs.up;
+    document.querySelector("#down_arrow").src=ga.res.imgs.down;
+    document.querySelector("#right_arrow").src=ga.res.imgs.right;
+    document.querySelector("#left_arrow").src=ga.res.imgs.left;
 }
 function initGame(){
     // 處理 HTML DOM
@@ -197,8 +205,8 @@ function initGame(){
     document.addEventListener("keyup", keyup);    
     // 初始化遊戲資料
     ga.ctx.canvas.removeEventListener("click", initGame);
-    ga.ctx.canvas.addEventListener("touchstart", touchStart);
-    ga.ctx.canvas.addEventListener("touchend", touchEnd);
+    document.addEventListener("touchstart", touchStart);
+    document.addEventListener("touchend", touchEnd);
     ga.game.circle=0;
     ga.game.plane=new ga.lib.Plane();
     ga.game.bulletSystem=new ga.lib.BulletSystem();
@@ -210,11 +218,11 @@ function initGame(){
         if(code==37){ // left
             ga.game.key.left=false;
         }else if(code==38){ // top
-            ga.game.key.top=false;
+            ga.game.key.up=false;
         }else if(code==39){ // right
             ga.game.key.right=false;
         }else if(code==40){ // bottom
-            ga.game.key.bottom=false;
+            ga.game.key.down=false;
         }else if(code==32){ // space
             ga.game.key.space=false;
         }
@@ -224,38 +232,35 @@ function initGame(){
         if(code==37){ // left
             ga.game.key.left=true;
         }else if(code==38){ // top
-            ga.game.key.top=true;
+            ga.game.key.up=true;
         }else if(code==39){ // right
             ga.game.key.right=true;
         }else if(code==40){ // bottom
-            ga.game.key.bottom=true;
+            ga.game.key.down=true;
         }else if(code==32){ // space
             ga.game.key.space=true;
         }
     }
     function touchStart(e){
-        let x,y;
-        x=e.touches[0].pageX;
-        y=e.touches[0].pageY;
-        
-        if(x<ga.game.plane.x){
-            ga.game.key.left=true;
+        let button=e.target.id;
+        if(button=="up_arrow"){
+            ga.game.key.up=true;
         }
-        if(x>ga.game.plane.x){
+        if(button=="down_arrow"){
+            ga.game.key.down=true;
+        }
+        if(button=="right_arrow"){
             ga.game.key.right=true;
         }
-        if(y<ga.game.plane.y){
-            ga.game.key.top=true;
-        }
-        if(y>ga.game.plane.y){
-            ga.game.key.bottom=true;
+        if(button=="left_arrow"){
+            ga.game.key.left=true;
         }   
     }
     function touchEnd(){
         ga.game.key.right=false;
         ga.game.key.left=false;
-        ga.game.key.top=false;
-        ga.game.key.bottom=false;
+        ga.game.key.up=false;
+        ga.game.key.down=false;
     }
 function refreshGame(){
     let drawables=ga.game.drawables;
@@ -313,17 +318,57 @@ function gameOver(){
     window.clearInterval(ga.game.id);
     //點擊重來
     ga.ctx.canvas.addEventListener("click", initGame);
-    ga.ctx.canvas.removeEventListener("touchstart", touchStart);
-    ga.ctx.canvas.removeEventListener("touchend", touchEnd);
+    document.removeEventListener("touchstart", touchStart);
+    document.removeEventListener("touchend", touchEnd);
     touchEnd();
 }
 window.addEventListener("load", init);
 document.addEventListener('touchmove', function (event) {
-                event.preventDefault();
-            }, {passive: false});
+    event.preventDefault();
+}, {passive: false});
+document.addEventListener("selectstart",function(event){
+    event.returnValue = false;
+});
 </script>
 
-
+<style>
+    .main{
+        display: none;
+        position: relative;
+    }
+    .up_arrow{
+        width: 70px;
+        height: 70px;
+        position: absolute;
+        bottom: 0px;
+        left: 70px;   
+        opacity: 0.15; 
+    } 
+    .down_arrow{
+        width: 70px;
+        height: 70px;
+        position: absolute;
+        bottom: 0px;
+        left: 0%;   
+        opacity: 0.15; 
+    }   
+    .left_arrow{
+        width: 70px;
+        height: 70px;
+        position: absolute;
+        bottom: 0px;
+        right: 120px; 
+        opacity: 0.15;      
+    }    
+    .right_arrow{
+        width: 70px;
+        height: 70px;
+        position: absolute;
+        bottom: 0px;
+        right: 40px; 
+        opacity: 0.15; 
+    }
+</style>
 </head>
 <body>
     <h3>Training 99</h3>
@@ -332,8 +377,12 @@ document.addEventListener('touchmove', function (event) {
     <div id="menu" style="display:none">
         <button onclick="initGame();">Start</button>
     </div>
-    <div id="main" style="display:none">
+    <div id="main" class="main">
         <canvas id="cvs" width="360" height="430"></canvas>
+        <img src="" id="up_arrow" class="up_arrow">
+        <img src="" id="down_arrow" class="down_arrow">
+        <img src="" id="right_arrow" class="right_arrow">
+        <img src="" id="left_arrow" class="left_arrow">
     </div>
 </body>
 </html>
