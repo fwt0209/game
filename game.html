@@ -246,29 +246,28 @@ function initGame(){
         if(button=="up_arrow"){
             ga.game.key.up=true;
         }
-        if(button=="down_arrow"){
+        else if(button=="down_arrow"){
             ga.game.key.down=true;
         }
-        if(button=="right_arrow"){
+        else if(button=="right_arrow"){
             ga.game.key.right=true;
         }
-        if(button=="left_arrow"){
+        else if(button=="left_arrow"){
             ga.game.key.left=true;
         }   
     }
     function touchEnd(e){
-        console.log(e);
         let button=e.target.id;
         if(button=="up_arrow"){
             ga.game.key.up=false;
         }
-        if(button=="down_arrow"){
+        else if(button=="down_arrow"){
             ga.game.key.down=false;
         }
-        if(button=="right_arrow"){
+        else if(button=="right_arrow"){
             ga.game.key.right=false;
         }
-        if(button=="left_arrow"){
+        else if(button=="left_arrow"){
             ga.game.key.left=false;
         }   
     }
