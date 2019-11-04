@@ -256,11 +256,21 @@ function initGame(){
             ga.game.key.left=true;
         }   
     }
-    function touchEnd(){
-        ga.game.key.right=false;
-        ga.game.key.left=false;
-        ga.game.key.up=false;
-        ga.game.key.down=false;
+    function touchEnd(e){
+        console.log(e);
+        let button=e.target.id;
+        if(button=="up_arrow"){
+            ga.game.key.up=false;
+        }
+        if(button=="down_arrow"){
+            ga.game.key.down=false;
+        }
+        if(button=="right_arrow"){
+            ga.game.key.right=false;
+        }
+        if(button=="left_arrow"){
+            ga.game.key.left=false;
+        }   
     }
 function refreshGame(){
     let drawables=ga.game.drawables;
@@ -320,7 +330,10 @@ function gameOver(){
     ga.ctx.canvas.addEventListener("click", initGame);
     document.removeEventListener("touchstart", touchStart);
     document.removeEventListener("touchend", touchEnd);
-    touchEnd();
+    ga.game.key.up=false;
+    ga.game.key.down=false;
+    ga.game.key.right=false;
+    ga.game.key.left=false;
 }
 window.addEventListener("load", init);
 document.addEventListener('touchmove', function (event) {
