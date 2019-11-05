@@ -254,8 +254,8 @@ function initGame(){
         }
         else if(button=="left_arrow"){
             ga.game.key.left=true;
-        }   
-        console.log(button);
+        } 
+        console.log(button,"down");  
     }
     function touchEnd(e){
         let button=e.target.id;
@@ -271,7 +271,7 @@ function initGame(){
         else if(button=="left_arrow"){
             ga.game.key.left=false;
         }   
-        console.log(button);
+        console.log(button,"up"); 
     }
 function refreshGame(){
     let drawables=ga.game.drawables;
@@ -343,12 +343,15 @@ document.addEventListener('touchmove', function (event) {
 document.addEventListener("selectstart",function(event){
     event.returnValue = false;
 });
+
 </script>
 
 <style>
     .main{
         display: none;
         position: relative;
+        width:360px;
+        height:430px
     }
     .up_arrow{
         width: 70px;
@@ -371,7 +374,7 @@ document.addEventListener("selectstart",function(event){
         height: 70px;
         position: absolute;
         bottom: 0px;
-        right: 120px; 
+        right: 80px; 
         opacity: 0.15;      
     }    
     .right_arrow{
@@ -379,7 +382,7 @@ document.addEventListener("selectstart",function(event){
         height: 70px;
         position: absolute;
         bottom: 0px;
-        right: 40px; 
+        right: 0px; 
         opacity: 0.15; 
     }
 </style>
