@@ -255,6 +255,7 @@ function initGame(){
         else if(button=="left_arrow"){
             ga.game.key.left=true;
         }   
+        console.log(button);
     }
     function touchEnd(e){
         let button=e.target.id;
@@ -270,6 +271,7 @@ function initGame(){
         else if(button=="left_arrow"){
             ga.game.key.left=false;
         }   
+        console.log(button);
     }
 function refreshGame(){
     let drawables=ga.game.drawables;
