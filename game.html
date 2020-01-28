@@ -13,11 +13,7 @@ let ga={
         imgs:{
             plane:"./content/plane.png",
             explosion:"./content/explosion.png",
-            smoke:"./content/smoke.png",
-            up:"./content/up.png",
-            down:"./content/down.png",
-            right:"./content/right.png",
-            left:"./content/left.png",
+            smoke:"./content/smoke.png"           
         }
     },
     game:{
@@ -26,9 +22,16 @@ let ga={
         drawables:null, plane:null, bulletSystem:null, 
         key:{
             left:false, up:false, right:false, down:false, space:false
+        },
+        planePosition:{
+            x:null, y:null
+        },
+        touchPosition:{
+            x:null, y:null
         }
     }
 };
+
 
 //飛機
 ga.lib.Plane=class{
@@ -39,6 +42,8 @@ ga.lib.Plane=class{
     }
     update(){
         let speed=2;
+        ga.game.planePosition.x=this.x;
+        ga.game.planePosition.y=this.y;
         if(ga.game.key.space){
             speed=speed*2;
         }
@@ -64,6 +69,20 @@ ga.lib.Plane=class{
         if(this.x>ga.ctx.canvas.width - this.size/2){
             this.x=ga.ctx.canvas.width - this.size/2;
         }
+
+
+        if(ga.game.touchPosition.x<ga.game.planePosition.x){
+            ga.game.key.right=false;
+        }    
+        if(ga.game.touchPosition.x>ga.game.planePosition.x){
+            ga.game.key.left=false;
+        }     
+        if(ga.game.touchPosition.y<ga.game.planePosition.y){
+            ga.game.key.down=false;
+        }   
+        if(ga.game.touchPosition.y>ga.game.planePosition.y){
+            ga.game.key.up=false;
+        } 
         return false;
     }
     draw(){
@@ -191,10 +210,6 @@ function initMenu(){
     document.querySelector("#loading").style.display="none";
     document.querySelector("#menu").style.display="block";
     document.querySelector("#main").style.display="none";
-    document.querySelector("#up_arrow").src=ga.res.imgs.up;
-    document.querySelector("#down_arrow").src=ga.res.imgs.down;
-    document.querySelector("#right_arrow").src=ga.res.imgs.right;
-    document.querySelector("#left_arrow").src=ga.res.imgs.left;
 }
 function initGame(){
     // 處理 HTML DOM
@@ -205,8 +220,8 @@ function initGame(){
     document.addEventListener("keyup", keyup);    
     // 初始化遊戲資料
     ga.ctx.canvas.removeEventListener("click", initGame);
-    document.addEventListener("touchstart", touchStart);
-    document.addEventListener("touchend", touchEnd);
+    ga.ctx.canvas.addEventListener("touchstart", touchStart);
+    ga.ctx.canvas.addEventListener("touchend", touchEnd);
     ga.game.circle=0;
     ga.game.plane=new ga.lib.Plane();
     ga.game.bulletSystem=new ga.lib.BulletSystem();
@@ -241,37 +256,44 @@ function initGame(){
             ga.game.key.space=true;
         }
     }
-    function touchStart(e){
-        let button=e.target.id;
-        if(button=="up_arrow"){
-            ga.game.key.up=true;
+    function touchStart(e){        
+        //console.log(e.targetTouches[0].pageX+","+e.targetTouches[0].pageY,"down");  
+        let o=this;
+        this.offsetX=this.offsetLeft;
+        this.offsetY=this.offsetTop;
+
+        while(o.offsetParent){
+    	    o=o.offsetParent;
+    	    this.offsetX+=o.offsetLeft;
+    	    this.offsetY+=o.offsetTop;
         }
-        else if(button=="down_arrow"){
-            ga.game.key.down=true;
+        ga.game.touchPosition.x=e.targetTouches[0].pageX - this.offsetX;
+        ga.game.touchPosition.y=e.targetTouches[0].pageY - this.offsetY;
+        let touchX = ga.game.touchPosition.x;
+        let touchY = ga.game.touchPosition.y;
+        let planX = ga.game.planePosition.x;
+        let planY = ga.game.planePosition.y;
+
+        if(touchX<planX){
+            ga.game.key.left=true;
         }
-        else if(button=="right_arrow"){
+        if(touchX>planX){
             ga.game.key.right=true;
         }
-        else if(button=="left_arrow"){
-            ga.game.key.left=true;
-        } 
-        console.log(button,"down");  
+        if(touchY<planY){
+            ga.game.key.up=true;
+        }
+        if(touchY>planY){
+            ga.game.key.down=true;
+        }
+        e.preventDefault();
     }
     function touchEnd(e){
-        let button=e.target.id;
-        if(button=="up_arrow"){
-            ga.game.key.up=false;
-        }
-        else if(button=="down_arrow"){
-            ga.game.key.down=false;
-        }
-        else if(button=="right_arrow"){
-            ga.game.key.right=false;
-        }
-        else if(button=="left_arrow"){
-            ga.game.key.left=false;
-        }   
-        console.log(button,"up"); 
+        ga.game.key.left=false;
+        ga.game.key.right=false;
+        ga.game.key.up=false;
+        ga.game.key.down=false;
+        e.preventDefault();
     }
 function refreshGame(){
     let drawables=ga.game.drawables;
@@ -291,11 +313,11 @@ function refreshGame(){
     }
     //偵測遊戲是否結束
     if(checkGameOver()){
-        gameOver();
+        //gameOver();
     }
     //更新回合數
     ga.game.circle++;
-    
+
 }
 
 
@@ -329,8 +351,8 @@ function gameOver(){
     window.clearInterval(ga.game.id);
     //點擊重來
     ga.ctx.canvas.addEventListener("click", initGame);
-    document.removeEventListener("touchstart", touchStart);
-    document.removeEventListener("touchend", touchEnd);
+    ga.ctx.canvas.removeEventListener("touchstart", touchStart);
+    ga.ctx.canvas.removeEventListener("touchend", touchEnd);
     ga.game.key.up=false;
     ga.game.key.down=false;
     ga.game.key.right=false;
@@ -352,39 +374,7 @@ document.addEventListener("selectstart",function(event){
         position: relative;
         width:360px;
         height:430px
-    }
-    .up_arrow{
-        width: 70px;
-        height: 70px;
-        position: absolute;
-        bottom: 0px;
-        left: 70px;   
-        opacity: 0.15; 
-    } 
-    .down_arrow{
-        width: 70px;
-        height: 70px;
-        position: absolute;
-        bottom: 0px;
-        left: 0%;   
-        opacity: 0.15; 
-    }   
-    .left_arrow{
-        width: 70px;
-        height: 70px;
-        position: absolute;
-        bottom: 0px;
-        right: 80px; 
-        opacity: 0.15;      
-    }    
-    .right_arrow{
-        width: 70px;
-        height: 70px;
-        position: absolute;
-        bottom: 0px;
-        right: 0px; 
-        opacity: 0.15; 
-    }
+    }  
 </style>
 </head>
 <body>
@@ -395,11 +385,8 @@ document.addEventListener("selectstart",function(event){
         <button onclick="initGame();">Start</button>
     </div>
     <div id="main" class="main">
-        <canvas id="cvs" width="360" height="430"></canvas>
-        <img src="" id="up_arrow" class="up_arrow">
-        <img src="" id="down_arrow" class="down_arrow">
-        <img src="" id="right_arrow" class="right_arrow">
-        <img src="" id="left_arrow" class="left_arrow">
+        <canvas id="cvs" width="360" height="430"></canvas>     
     </div>
+
 </body>
 </html>
