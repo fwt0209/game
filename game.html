@@ -32,6 +32,13 @@ let ga={
     }
 };
 
+// y= mx + b
+function m(x1,y1,x2,y2){
+    return (y2-y1)/(x2-x1);
+}
+function b(x1,y1,x2,y2){
+    return y1-(((y2-y1)*x1)/(x2-x1));
+}
 
 //飛機
 ga.lib.Plane=class{
@@ -39,6 +46,13 @@ ga.lib.Plane=class{
         this.x=ga.ctx.canvas.width/2;
         this.y=ga.ctx.canvas.height/2;
         this.size=20;
+
+        this.touchX;
+        this.touchY;
+
+        this.tempX;
+        this.tempY;
+        
     }
     update(){
         let speed=2;
@@ -47,20 +61,59 @@ ga.lib.Plane=class{
         if(ga.game.key.space){
             speed=speed*2;
         }
-        if(ga.game.key.left){            
+        
+        if(ga.game.key.left){             
+            this.touchX= (ga.game.touchPosition.x==null) ? 0 : ga.game.touchPosition.x;
+            this.touchY= (ga.game.touchPosition.y==null) ? this.y : ga.game.touchPosition.y;
+         
+            //1. 判斷 NaN 2.計算完的座標值取整 3.63~34行有沒有必要這樣給值         
+            
+            this.tempX=this.x;
+            this.tempY=this.y;
+            this.y=(m(this.x,this.y,this.touchX,this.touchY)*(this.x-speed))+b(this.x,this.y,this.touchX,this.touchY);//新Y軸值  
             this.x-=speed;
+            
             //if(this.x <10){this.x = 10}
         }
         if(ga.game.key.right){
+            this.touchX= (ga.game.touchPosition.x==null) ? ga.ctx.canvas.width : ga.game.touchPosition.x;
+            this.touchY= (ga.game.touchPosition.y==null) ? this.y : ga.game.touchPosition.y;
+            
+            this.tempX=this.x;
+            this.tempY=this.y;
+            this.y=(m(this.x,this.y,this.touchX,this.touchY)*(this.x+speed))+b(this.x,this.y,this.touchX,this.touchY);
             this.x+=speed;
+           
             //if(this.x > ga.ctx.canvas.width -10){this.x = ga.ctx.canvas.width -10}
         }
         if(ga.game.key.up){
-            this.y-=speed;
+            this.touchX= (ga.game.touchPosition.x==null) ? this.x : ga.game.touchPosition.x;
+            this.touchY= (ga.game.touchPosition.y==null) ? 0 : ga.game.touchPosition.y;     
+            
+            if((this.tempY-this.y)>1){
+                this.y=this.tempY-speed;
+                this.x=((this.tempY-speed-b(this.tempX,this.tempY,this.touchX,this.touchY))/m(this.tempX,this.tempY,this.touchX,this.touchY))                
+                }
+                else if((this.x-this.touchX)==0){
+                    this.y-=speed;
+                }       
+           
+            //this.y-=speed;
             if(this.y <10){this.y = 10}
         }
         if(ga.game.key.down){
-            this.y+=speed;
+            this.touchX= (ga.game.touchPosition.x==null) ? this.x : ga.game.touchPosition.x;
+            this.touchY= (ga.game.touchPosition.y==null) ? ga.ctx.canvas.height : ga.game.touchPosition.y;          
+           
+            if((this.y-this.tempY)>1){
+                this.y=this.tempY+speed;
+                this.x=((this.tempY+speed-b(this.tempX,this.tempY,this.touchX,this.touchY))/m(this.tempX,this.tempY,this.touchX,this.touchY))             
+                }
+                else if((this.x-this.touchX)==0){
+                    this.y+=speed;
+                }
+               
+            //this.y+=speed;
             if(this.y > ga.ctx.canvas.height -10){this.y = ga.ctx.canvas.height -10}
         }
         if(this.x<this.size/2){
@@ -71,18 +124,7 @@ ga.lib.Plane=class{
         }
 
 
-        if(ga.game.touchPosition.x<ga.game.planePosition.x){
-            ga.game.key.right=false;
-        }    
-        if(ga.game.touchPosition.x>ga.game.planePosition.x){
-            ga.game.key.left=false;
-        }     
-        if(ga.game.touchPosition.y<ga.game.planePosition.y){
-            ga.game.key.down=false;
-        }   
-        if(ga.game.touchPosition.y>ga.game.planePosition.y){
-            ga.game.key.up=false;
-        } 
+       
         return false;
     }
     draw(){
@@ -293,6 +335,8 @@ function initGame(){
         ga.game.key.right=false;
         ga.game.key.up=false;
         ga.game.key.down=false;
+        ga.game.touchPosition.x=null
+        ga.game.touchPosition.y=null
         e.preventDefault();
     }
 function refreshGame(){
@@ -313,7 +357,7 @@ function refreshGame(){
     }
     //偵測遊戲是否結束
     if(checkGameOver()){
-        //gameOver();
+        gameOver();
     }
     //更新回合數
     ga.game.circle++;
